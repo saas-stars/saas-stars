@@ -42,7 +42,7 @@ function Detail({ icon, label, children }: { icon: React.ReactNode; label: strin
   );
 }
 
-function AddNewsForm({ startupId, onAdded }: { startupId: string; onAdded: () => void }) {
+function AddNewsForm({ startupId, onAdded }: { startupId: string; onAdded: (news: Startup["news"]) => void }) {
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
 
@@ -56,7 +56,9 @@ function AddNewsForm({ startupId, onAdded }: { startupId: string; onAdded: () =>
     });
     setTitle("");
     setUrl("");
-    onAdded();
+    // Get updated startup from store to reflect new news
+    const updated = store.getById(startupId);
+    onAdded(updated?.news || []);
   }
 
   return (
@@ -76,7 +78,8 @@ function AddNewsForm({ startupId, onAdded }: { startupId: string; onAdded: () =>
   );
 }
 
-export function StartupProfileClient({ startup }: { startup: Startup }) {
+export function StartupProfileClient({ startup: initialStartup }: { startup: Startup }) {
+  const [startup, setStartup] = useState(initialStartup);
   const [showNewsForm, setShowNewsForm] = useState(false);
   const { user } = useAuth();
   const isOwner = user !== null && user.id === startup.ownerId;
@@ -135,7 +138,10 @@ export function StartupProfileClient({ startup }: { startup: Startup }) {
 
         {showNewsForm && (
           <div className="mb-4">
-            <AddNewsForm startupId={startup.id} onAdded={() => setShowNewsForm(false)} />
+            <AddNewsForm startupId={startup.id} onAdded={(newNews) => {
+              setStartup((prev) => ({ ...prev, news: newNews }));
+              setShowNewsForm(false);
+            }} />
           </div>
         )}
 
