@@ -71,6 +71,8 @@ export function AddStartupClient() {
       shortDescription: form.shortDescription || undefined, freeTrialUrl: form.freeTrialUrl || undefined,
       demoUrl: form.demoUrl || undefined,
     });
+    // Pre-warm the ISR page before redirecting so user doesn't hit a 404
+    await fetch(`/startups/${startup.slug}`).catch(() => {});
     router.push(`/startups/${startup.slug}`);
   }
 
