@@ -30,15 +30,15 @@ function mapRow(r: Record<string, unknown>): Startup {
   };
 }
 
-/** Fetch all startups, falling back to seed data */
+/** Fetch all startups from Supabase */
 export async function getAllStartups(): Promise<Startup[]> {
   const { data, error } = await supabase
     .from("startups")
     .select("*")
     .order("created_at", { ascending: false });
 
-  if (error || !data || data.length === 0) {
-    return SEED_DATA;
+  if (error || !data) {
+    return [];
   }
   return data.map(mapRow);
 }

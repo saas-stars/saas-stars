@@ -68,8 +68,8 @@ async function loadFromDB() {
     .select("*")
     .order("created_at", { ascending: false });
 
-  if (error || !data || data.length === 0) {
-    startups = SEED_DATA;
+  if (error || !data) {
+    startups = [];
   } else {
     startups = data.map(mapRow);
   }
