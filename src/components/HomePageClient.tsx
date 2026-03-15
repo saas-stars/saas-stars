@@ -65,9 +65,10 @@ export function HomePageClient({ initialStartups }: Props) {
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, 12);
 
-  const recentNews = [...filtered]
-    .filter((s) => s.news.length > 0)
-    .sort((a, b) => (b.news[0]?.date || "").localeCompare(a.news[0]?.date || ""))
+  // Flatten all news items with their parent startup info
+  const allNews = filtered
+    .flatMap((s) => s.news.map((n) => ({ ...n, companyName: s.companyName, slug: s.slug, category: s.category })))
+    .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 12);
 
   return (
@@ -168,12 +169,30 @@ export function HomePageClient({ initialStartups }: Props) {
               Recent News
               {category && <span className="font-normal text-gray-400 normal-case tracking-normal">in {category}</span>}
             </h2>
-            {recentNews.length === 0 ? (
+            {allNews.length === 0 ? (
               <p className="text-sm text-gray-400">No news yet{category ? ` in ${category}` : ""}.</p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {recentNews.map((s) => (
-                  <StartupCard key={s.id} startup={s} />
+              <div className="space-y-3">
+                {allNews.map((item) => (
+                  <div key={item.id} className="flex items-start gap-3 bg-white border border-gray-200 rounded-lg px-4 py-3 hover:border-gray-300 transition-colors">
+                    <Newspaper className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      {item.url ? (
+                        <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-800 hover:text-blue-600 hover:underline font-medium">
+                          {item.title}
+                        </a>
+                      ) : (
+                        <p className="text-sm text-gray-800 font-medium">{item.title}</p>
+                      )}
+                      <div className="flex items-center gap-2 mt-1">
+                        <Link href={`/startups/${item.slug}`} className="text-xs text-emerald-600 hover:text-emerald-700 font-medium">{item.companyName}</Link>
+                        <span className="text-xs text-gray-300">·</span>
+                        <span className="text-xs text-gray-400">{item.category}</span>
+                        <span className="text-xs text-gray-300">·</span>
+                        <span className="text-xs text-gray-400">{item.date}</span>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
