@@ -6,6 +6,8 @@ import Link from "next/link";
 import type { Startup } from "@/lib/types";
 import { StartupCard } from "./StartupCard";
 import { CategoryFilter } from "./CategoryFilter";
+import { useAuth } from "@/hooks/useAuth";
+import { useStartups } from "@/hooks/useStore";
 import {
   Clock,
   Newspaper,
@@ -13,6 +15,7 @@ import {
   TrendingUp,
   Search,
   Shield,
+  Star,
   Zap,
   X,
 } from "lucide-react";
@@ -34,6 +37,9 @@ export function HomePageClient({ initialStartups }: Props) {
   const queryParam = searchParams.get("q") || "";
   const [category, setCategory] = useState<string | null>(null);
   const [mobileSearch, setMobileSearch] = useState("");
+  const { user } = useAuth();
+  const storeApi = useStartups();
+  const myListing = user ? storeApi.getAll().find((s) => s.ownerId === user.id) : null;
 
   const activeQuery = queryParam || mobileSearch;
 
@@ -93,13 +99,23 @@ export function HomePageClient({ initialStartups }: Props) {
           )}
         </div>
 
-        <Link
-          href="/add"
-          className="inline-flex items-center gap-2 bg-emerald-600 text-white text-sm font-semibold px-6 py-3 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
-        >
-          <Zap className="w-4 h-4" />
-          List Your Startup — It&apos;s Free
-        </Link>
+        {myListing ? (
+          <Link
+            href={`/startups/${myListing.slug}`}
+            className="inline-flex items-center gap-2 bg-emerald-600 text-white text-sm font-semibold px-6 py-3 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
+          >
+            <Star className="w-4 h-4" />
+            Go to {myListing.companyName}
+          </Link>
+        ) : (
+          <Link
+            href="/add"
+            className="inline-flex items-center gap-2 bg-emerald-600 text-white text-sm font-semibold px-6 py-3 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
+          >
+            <Zap className="w-4 h-4" />
+            List Your Startup — It&apos;s Free
+          </Link>
+        )}
       </section>
 
       {searchResults !== null ? (
