@@ -28,7 +28,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const startupPages: MetadataRoute.Sitemap = startups.map((s) => ({
     url: `${SITE_URL}/startups/${s.slug}`,
-    lastModified: new Date(s.createdAt + "T00:00:00Z"),
+    lastModified: new Date(s.createdAt.includes("T") ? s.createdAt : s.createdAt + "T00:00:00Z"),
     changeFrequency: "weekly" as const,
     priority: 0.8,
   }));
