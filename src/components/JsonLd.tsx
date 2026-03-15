@@ -9,7 +9,7 @@ export function WebsiteJsonLd() {
     name: "SaaS Stars",
     url: SITE_URL,
     description:
-      "The free directory for SaaS startups to get discovered by customers, investors, and partners.",
+      "The GTM platform for bootstrapped SaaS. Get discovered, generate leads, and build SEO authority.",
     potentialAction: {
       "@type": "SearchAction",
       target: `${SITE_URL}/?q={search_term_string}`,

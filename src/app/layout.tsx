@@ -9,11 +9,11 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://saasstars.com";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "SaaS Stars — The Free Directory for SaaS Startups",
+    default: "SaaS Stars — The GTM Platform for Bootstrapped SaaS",
     template: "%s | SaaS Stars",
   },
   description:
-    "Discover the best SaaS startups. Get listed for free — drive trials, earn SEO backlinks, and share news with customers, investors, and partners.",
+    "The GTM platform for bootstrapped SaaS. Get discovered, generate leads, and build SEO authority — without VC money or a marketing budget.",
   keywords: [
     "SaaS directory",
     "SaaS startups",
@@ -29,16 +29,16 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: SITE_URL,
     siteName: "SaaS Stars",
-    title: "SaaS Stars — The Free Directory for SaaS Startups",
+    title: "SaaS Stars — The GTM Platform for Bootstrapped SaaS",
     description:
-      "Discover the best SaaS startups. Get listed for free — drive trials, earn SEO backlinks, and share news.",
+      "Get discovered, generate leads, and build SEO authority — without VC money or a marketing budget.",
   },
   twitter: {
     card: "summary_large_image",
     site: "@SaaS_Stars",
-    title: "SaaS Stars — The Free Directory for SaaS Startups",
+    title: "SaaS Stars — The GTM Platform for Bootstrapped SaaS",
     description:
-      "Discover the best SaaS startups. Get listed for free — drive trials, earn SEO backlinks, and share news.",
+      "Get discovered, generate leads, and build SEO authority — without VC money or a marketing budget.",
   },
   robots: {
     index: true,

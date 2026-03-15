@@ -69,12 +69,12 @@ export function HomePageClient({ initialStartups }: Props) {
       {/* Hero */}
       <section className="text-center pt-6 pb-10 mb-8 border-b border-gray-100">
         <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight mb-3">
-          The directory for SaaS startups
+          The GTM platform for
           <br className="hidden sm:block" />
-          <span className="text-emerald-500"> that want to be found</span>
+          <span className="text-emerald-500"> bootstrapped SaaS</span>
         </h1>
         <p className="text-gray-500 text-base sm:text-lg max-w-lg mx-auto mb-6">
-          Get discovered. Drive trials. Earn backlinks. Post news — all free.
+          Get discovered, generate leads, and build SEO authority — without VC money or a marketing budget.
         </p>
 
         <div className="max-w-lg mx-auto mb-6 relative sm:hidden">

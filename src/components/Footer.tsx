@@ -19,8 +19,8 @@ export function Footer() {
               SaaS Stars
             </h3>
             <p className="text-sm text-gray-500 max-w-md">
-              The free directory for SaaS startups to get discovered by customers,
-              investors, and partners.
+              The GTM platform for bootstrapped SaaS. Get discovered, generate leads,
+              and build SEO authority.
             </p>
           </div>
           <a
