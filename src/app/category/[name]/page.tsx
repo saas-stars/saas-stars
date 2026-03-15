@@ -7,6 +7,9 @@ import { CategoryPageClient } from "@/components/CategoryPageClient";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://saasstars.com";
 
+/** Revalidate every 60 seconds so new startups appear quickly */
+export const revalidate = 60;
+
 function catSlug(cat: string) {
   return cat.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }

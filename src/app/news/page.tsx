@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { getAllStartups } from "@/lib/db";
 import { NewsFeedClient } from "@/components/NewsFeedClient";
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "SaaS Startup News — Latest Product Launches, Funding & Updates",
   description:

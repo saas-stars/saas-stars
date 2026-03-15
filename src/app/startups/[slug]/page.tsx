@@ -6,6 +6,12 @@ import { StartupProfileClient } from "@/components/StartupProfileClient";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://saasstars.com";
 
+/** Allow pages for slugs not generated at build time (new startups) */
+export const dynamicParams = true;
+
+/** Revalidate pages every 60 seconds so new data appears quickly */
+export const revalidate = 60;
+
 interface Props {
   params: Promise<{ slug: string }>;
 }
