@@ -6,6 +6,7 @@ import Link from "next/link";
 import { CATEGORIES, FUNDRAISING_STAGES } from "@/lib/types";
 import { store } from "@/lib/store";
 import { useAuth } from "@/hooks/useAuth";
+import { AuthModal } from "./AuthModal";
 import {
   ArrowLeft, CheckCircle2, Link as LinkIcon, Megaphone, Newspaper, Search, TrendingUp, Users,
 } from "lucide-react";
@@ -103,10 +104,15 @@ export function AddStartupClient() {
 
   if (!user) {
     return (
-      <div className="max-w-md mx-auto text-center py-20">
-        <h1 className="text-xl font-bold text-gray-900 mb-2">Sign in to list your startup</h1>
-        <p className="text-sm text-gray-500 mb-4">Create a free account to add your SaaS to the directory.</p>
-        <Link href="/" className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">← Back to Home</Link>
+      <div className="max-w-md mx-auto py-10">
+        <h1 className="text-xl font-bold text-gray-900 mb-2 text-center">Create an account to list your startup</h1>
+        <p className="text-sm text-gray-500 mb-6 text-center">It&apos;s free and takes 30 seconds.</p>
+        <AuthModal
+          defaultTab="signup"
+          inline
+          onClose={() => router.push("/")}
+          onSuccess={() => {}}
+        />
       </div>
     );
   }

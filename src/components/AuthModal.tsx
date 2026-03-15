@@ -8,9 +8,10 @@ interface Props {
   onClose: () => void;
   onSuccess: () => void;
   defaultTab?: "login" | "signup";
+  inline?: boolean;
 }
 
-export function AuthModal({ onClose, onSuccess, defaultTab = "login" }: Props) {
+export function AuthModal({ onClose, onSuccess, defaultTab = "login", inline = false }: Props) {
   const [tab, setTab] = useState<"login" | "signup">(defaultTab);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -62,12 +63,13 @@ export function AuthModal({ onClose, onSuccess, defaultTab = "login" }: Props) {
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700">
-          <X className="w-5 h-5" />
-        </button>
+  const card = (
+      <div className={`bg-white rounded-xl ${inline ? "border border-gray-200" : "shadow-xl"} w-full max-w-sm ${inline ? "" : "mx-4"} p-6 relative`}>
+        {!inline && (
+          <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700">
+            <X className="w-5 h-5" />
+          </button>
+        )}
 
         <div className="flex gap-4 mb-6 border-b border-gray-200">
           <button
@@ -116,6 +118,13 @@ export function AuthModal({ onClose, onSuccess, defaultTab = "login" }: Props) {
           </button>
         </form>
       </div>
+  );
+
+  if (inline) return card;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      {card}
     </div>
   );
 }
