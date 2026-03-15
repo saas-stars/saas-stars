@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { useStartups } from "@/hooks/useStore";
 import { AuthModal } from "./AuthModal";
 import {
   Plus,
@@ -47,14 +48,19 @@ export function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, auth } = useAuth();
+  const storeApi = useStartups();
   const [showAuth, setShowAuth] = useState<"login" | "signup" | null>(null);
   const [pendingAdd, setPendingAdd] = useState(false);
   const [headerSearch, setHeaderSearch] = useState("");
+
+  const myListing = user ? storeApi.getAll().find((s) => s.ownerId === user.id) : null;
 
   function handleAddClick() {
     if (!user) {
       setPendingAdd(true);
       setShowAuth("signup");
+    } else if (myListing) {
+      router.push(`/startups/${myListing.slug}`);
     } else {
       router.push("/add");
     }
@@ -114,8 +120,17 @@ export function Header() {
                   onClick={handleAddClick}
                   className="flex items-center gap-1.5 text-sm font-medium bg-emerald-600 text-white px-3.5 py-1.5 rounded-lg hover:bg-emerald-700 transition-colors"
                 >
-                  <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">Add SaaS</span>
+                  {myListing ? (
+                    <>
+                      <Star className="w-4 h-4" />
+                      <span className="hidden sm:inline">{myListing.companyName}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      <span className="hidden sm:inline">Add SaaS</span>
+                    </>
+                  )}
                 </button>
                 <button
                   onClick={() => auth.logout()}
