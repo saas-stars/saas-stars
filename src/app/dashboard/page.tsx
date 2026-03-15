@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { getAllStartups } from "@/lib/db";
 import { DashboardClient } from "@/components/DashboardClient";
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "SaaS Ecosystem Dashboard — Stats & Insights",
   description:

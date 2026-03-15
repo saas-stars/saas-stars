@@ -21,6 +21,22 @@ const COORDS: Record<string, [number, number]> = {
   "Tokyo, Japan": [35.68, 139.69], "Bangalore, India": [12.97, 77.59],
   "Dubai, UAE": [25.2, 55.27], "São Paulo, Brazil": [-23.55, -46.63],
   "Stockholm, Sweden": [59.33, 18.07], "Dublin, Ireland": [53.35, -6.26],
+  "Boulder, CO": [40.01, -105.27], "Portland, OR": [45.52, -122.68],
+  "San Diego, CA": [32.72, -117.16], "Phoenix, AZ": [33.45, -112.07],
+  "Salt Lake City, UT": [40.76, -111.89], "Nashville, TN": [36.16, -86.78],
+  "Raleigh, NC": [35.78, -78.64], "Minneapolis, MN": [44.98, -93.27],
+  "Dallas, TX": [32.78, -96.80], "Houston, TX": [29.76, -95.37],
+  "Washington, DC": [38.91, -77.04], "Philadelphia, PA": [39.95, -75.17],
+  "Pittsburgh, PA": [40.44, -80.00], "Detroit, MI": [42.33, -83.05],
+  "Vancouver, Canada": [49.28, -123.12], "Montreal, Canada": [45.50, -73.57],
+  "Munich, Germany": [48.14, 11.58], "Lisbon, Portugal": [38.72, -9.14],
+  "Barcelona, Spain": [41.39, 2.17], "Copenhagen, Denmark": [55.68, 12.57],
+  "Helsinki, Finland": [60.17, 24.94], "Zurich, Switzerland": [47.37, 8.54],
+  "Melbourne, Australia": [-37.81, 144.96], "Seoul, South Korea": [37.57, 126.98],
+  "Shanghai, China": [31.23, 121.47], "Beijing, China": [39.90, 116.40],
+  "Lagos, Nigeria": [6.52, 3.38], "Nairobi, Kenya": [-1.29, 36.82],
+  "Cape Town, South Africa": [-33.93, 18.42], "Mexico City, Mexico": [19.43, -99.13],
+  "Buenos Aires, Argentina": [-34.60, -58.38], "Bogota, Colombia": [4.71, -74.07],
 };
 
 const CAT_COLORS: Record<string, string> = {
