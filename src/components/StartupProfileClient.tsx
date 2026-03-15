@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import type { Startup } from "@/lib/types";
 import { CATEGORIES, FUNDRAISING_STAGES } from "@/lib/types";
 import { store } from "@/lib/store";
@@ -27,7 +26,6 @@ import {
   CreditCard,
   User,
   Rocket,
-  ImageIcon,
 } from "lucide-react";
 
 /* ─── Helpers ─── */
