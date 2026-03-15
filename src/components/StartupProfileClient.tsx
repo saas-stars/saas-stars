@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { Startup } from "@/lib/types";
+import { CATEGORIES, FUNDRAISING_STAGES } from "@/lib/types";
 import { store } from "@/lib/store";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -17,6 +18,8 @@ import {
   Newspaper,
   Play,
   Plus,
+  Pencil,
+  X,
 } from "lucide-react";
 
 function LinkPill({ href, label, icon }: { href: string; label: string; icon: React.ReactNode }) {
@@ -78,9 +81,111 @@ function AddNewsForm({ startupId, onAdded }: { startupId: string; onAdded: (news
   );
 }
 
+function EditField({ label, value, onChange, type = "text", placeholder }: { label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string }) {
+  return (
+    <div>
+      <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
+      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} className="input text-sm" placeholder={placeholder} />
+    </div>
+  );
+}
+
+function EditProfileForm({ startup, onSaved, onCancel }: { startup: Startup; onSaved: (s: Startup) => void; onCancel: () => void }) {
+  const [form, setForm] = useState({
+    companyName: startup.companyName,
+    category: startup.category,
+    hqLocation: startup.hqLocation,
+    website: startup.website,
+    yearFounded: String(startup.yearFounded),
+    fundraisingStage: startup.fundraisingStage,
+    employees: startup.employees || "",
+    revenue: startup.revenue || "",
+    shortDescription: startup.shortDescription || "",
+    freeTrialUrl: startup.freeTrialUrl || "",
+    demoUrl: startup.demoUrl || "",
+    linkedinUrl: startup.linkedinUrl || "",
+    xUrl: startup.xUrl || "",
+    youtubeUrl: startup.youtubeUrl || "",
+    newsletterUrl: startup.newsletterUrl || "",
+  });
+  const [saving, setSaving] = useState(false);
+
+  function set(key: string, value: string) { setForm((prev) => ({ ...prev, [key]: value })); }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    const updates: Partial<Startup> = {
+      companyName: form.companyName,
+      category: form.category,
+      hqLocation: form.hqLocation,
+      website: form.website.startsWith("http") ? form.website : "https://" + form.website,
+      yearFounded: parseInt(form.yearFounded),
+      fundraisingStage: form.fundraisingStage,
+      employees: form.employees || undefined,
+      revenue: form.revenue || undefined,
+      shortDescription: form.shortDescription || undefined,
+      freeTrialUrl: form.freeTrialUrl || undefined,
+      demoUrl: form.demoUrl || undefined,
+      linkedinUrl: form.linkedinUrl || undefined,
+      xUrl: form.xUrl || undefined,
+      youtubeUrl: form.youtubeUrl || undefined,
+      newsletterUrl: form.newsletterUrl || undefined,
+    };
+    await store.update(startup.id, updates);
+    setSaving(false);
+    onSaved({ ...startup, ...updates });
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-8 space-y-4">
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-sm font-bold text-gray-900">Edit Profile</h2>
+        <button type="button" onClick={onCancel} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <EditField label="Company Name" value={form.companyName} onChange={(v) => set("companyName", v)} />
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Category</label>
+          <select value={form.category} onChange={(e) => set("category", e.target.value)} className="input text-sm">
+            {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <EditField label="HQ Location" value={form.hqLocation} onChange={(v) => set("hqLocation", v)} placeholder="City, State" />
+        <EditField label="Website" value={form.website} onChange={(v) => set("website", v)} placeholder="https://..." />
+        <EditField label="Year Founded" value={form.yearFounded} onChange={(v) => set("yearFounded", v)} type="number" />
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Fundraising Stage</label>
+          <select value={form.fundraisingStage} onChange={(e) => set("fundraisingStage", e.target.value)} className="input text-sm">
+            {FUNDRAISING_STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
+        <EditField label="Employees" value={form.employees} onChange={(v) => set("employees", v)} placeholder="1-10" />
+        <EditField label="Revenue" value={form.revenue} onChange={(v) => set("revenue", v)} placeholder="$1M ARR" />
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Short Description</label>
+        <textarea value={form.shortDescription} onChange={(e) => set("shortDescription", e.target.value)} className="input text-sm min-h-[60px] resize-none" maxLength={200} />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <EditField label="Free Trial URL" value={form.freeTrialUrl} onChange={(v) => set("freeTrialUrl", v)} placeholder="https://..." />
+        <EditField label="Demo URL" value={form.demoUrl} onChange={(v) => set("demoUrl", v)} placeholder="https://..." />
+        <EditField label="LinkedIn URL" value={form.linkedinUrl} onChange={(v) => set("linkedinUrl", v)} placeholder="https://linkedin.com/..." />
+        <EditField label="X / Twitter URL" value={form.xUrl} onChange={(v) => set("xUrl", v)} placeholder="https://x.com/..." />
+        <EditField label="YouTube URL" value={form.youtubeUrl} onChange={(v) => set("youtubeUrl", v)} placeholder="https://youtube.com/..." />
+        <EditField label="Newsletter / Blog URL" value={form.newsletterUrl} onChange={(v) => set("newsletterUrl", v)} placeholder="https://..." />
+      </div>
+      <button type="submit" disabled={saving} className="text-sm font-medium bg-gray-900 text-white px-5 py-2 rounded-lg hover:bg-gray-800 disabled:opacity-50 transition-colors">
+        {saving ? "Saving…" : "Save Changes"}
+      </button>
+    </form>
+  );
+}
+
 export function StartupProfileClient({ startup: initialStartup }: { startup: Startup }) {
   const [startup, setStartup] = useState(initialStartup);
   const [showNewsForm, setShowNewsForm] = useState(false);
+  const [editing, setEditing] = useState(false);
   const { user } = useAuth();
   const isOwner = user !== null && user.id === startup.ownerId;
 
@@ -91,13 +196,31 @@ export function StartupProfileClient({ startup: initialStartup }: { startup: Sta
         Back
       </Link>
 
-      {/* Header - this is real server-rendered HTML */}
+      {/* Header */}
       <header className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">{startup.companyName}</h1>
-        {startup.shortDescription && (
-          <p className="text-gray-500 text-base leading-relaxed mt-2">{startup.shortDescription}</p>
-        )}
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-1">{startup.companyName}</h1>
+            {startup.shortDescription && (
+              <p className="text-gray-500 text-base leading-relaxed mt-2">{startup.shortDescription}</p>
+            )}
+          </div>
+          {isOwner && !editing && (
+            <button onClick={() => setEditing(true)} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors shrink-0">
+              <Pencil className="w-3.5 h-3.5" />
+              Edit
+            </button>
+          )}
+        </div>
       </header>
+
+      {editing && (
+        <EditProfileForm
+          startup={startup}
+          onSaved={(updated) => { setStartup(updated); setEditing(false); }}
+          onCancel={() => setEditing(false)}
+        />
+      )}
 
       {/* Key details */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
