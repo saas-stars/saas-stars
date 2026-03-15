@@ -31,6 +31,18 @@ function mapRow(r: Record<string, unknown>): Startup {
     shortDescription: (r.short_description as string) || undefined,
     freeTrialUrl: (r.free_trial_url as string) || undefined,
     demoUrl: (r.demo_url as string) || undefined,
+    logoUrl: (r.logo_url as string) || undefined,
+    screenshotUrl: (r.screenshot_url as string) || undefined,
+    longDescription: (r.long_description as string) || undefined,
+    tags: (r.tags as string[]) || undefined,
+    integrations: (r.integrations as string[]) || undefined,
+    pricingSummary: (r.pricing_summary as string) || undefined,
+    pricingUrl: (r.pricing_url as string) || undefined,
+    founderName: (r.founder_name as string) || undefined,
+    founderTitle: (r.founder_title as string) || undefined,
+    founderLinkedinUrl: (r.founder_linkedin_url as string) || undefined,
+    ctaLabel: (r.cta_label as string) || undefined,
+    ctaUrl: (r.cta_url as string) || undefined,
     news: (r.news as NewsItem[]) || [],
     ownerId: r.owner_id as string,
     createdAt: r.created_at as string,
@@ -57,6 +69,18 @@ function toRow(s: Partial<Startup>): Record<string, unknown> {
   if (s.shortDescription !== undefined) row.short_description = s.shortDescription;
   if (s.freeTrialUrl !== undefined) row.free_trial_url = s.freeTrialUrl;
   if (s.demoUrl !== undefined) row.demo_url = s.demoUrl;
+  if (s.logoUrl !== undefined) row.logo_url = s.logoUrl;
+  if (s.screenshotUrl !== undefined) row.screenshot_url = s.screenshotUrl;
+  if (s.longDescription !== undefined) row.long_description = s.longDescription;
+  if (s.tags !== undefined) row.tags = s.tags;
+  if (s.integrations !== undefined) row.integrations = s.integrations;
+  if (s.pricingSummary !== undefined) row.pricing_summary = s.pricingSummary;
+  if (s.pricingUrl !== undefined) row.pricing_url = s.pricingUrl;
+  if (s.founderName !== undefined) row.founder_name = s.founderName;
+  if (s.founderTitle !== undefined) row.founder_title = s.founderTitle;
+  if (s.founderLinkedinUrl !== undefined) row.founder_linkedin_url = s.founderLinkedinUrl;
+  if (s.ctaLabel !== undefined) row.cta_label = s.ctaLabel;
+  if (s.ctaUrl !== undefined) row.cta_url = s.ctaUrl;
   if (s.news !== undefined) row.news = s.news;
   if (s.ownerId !== undefined) row.owner_id = s.ownerId;
   return row;

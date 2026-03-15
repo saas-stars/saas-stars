@@ -29,6 +29,18 @@ export interface Startup {
   shortDescription?: string;
   freeTrialUrl?: string;
   demoUrl?: string;
+  logoUrl?: string;
+  screenshotUrl?: string;
+  longDescription?: string;
+  tags?: string[];
+  integrations?: string[];
+  pricingSummary?: string;
+  pricingUrl?: string;
+  founderName?: string;
+  founderTitle?: string;
+  founderLinkedinUrl?: string;
+  ctaLabel?: string;
+  ctaUrl?: string;
   news: NewsItem[];
   ownerId: string;
   createdAt: string;
