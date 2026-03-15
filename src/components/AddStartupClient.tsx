@@ -40,6 +40,18 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   );
 }
 
+function getEmailDomain(email: string): string {
+  return email.split("@")[1]?.toLowerCase() || "";
+}
+
+function getWebsiteDomain(url: string): string {
+  try {
+    return new URL(url.startsWith("http") ? url : "https://" + url).hostname.replace("www.", "").toLowerCase();
+  } catch {
+    return url.replace(/^https?:\/\//, "").replace("www.", "").split("/")[0].toLowerCase();
+  }
+}
+
 export function AddStartupClient() {
   const router = useRouter();
   const { user } = useAuth();
@@ -49,6 +61,9 @@ export function AddStartupClient() {
     xUrl: "", youtubeUrl: "", shortDescription: "", freeTrialUrl: "", demoUrl: "",
   });
   const [error, setError] = useState("");
+
+  // Check if user already has a listing
+  const existingListing = user ? store.getAll().find((s) => s.ownerId === user.id) : null;
 
   function set(key: string, value: string) { setForm((prev) => ({ ...prev, [key]: value })); setError(""); }
 
@@ -60,6 +75,16 @@ export function AddStartupClient() {
     }
     let website = form.website;
     if (!website.startsWith("http")) website = "https://" + website;
+
+    // Validate domain matches email
+    if (user) {
+      const emailDomain = getEmailDomain(user.email);
+      const siteDomain = getWebsiteDomain(website);
+      if (emailDomain && siteDomain && emailDomain !== siteDomain) {
+        setError(`Your website domain must match your email domain. You're signed in as ${user.email}, so your website must be on ${emailDomain}.`);
+        return;
+      }
+    }
 
     const startup = await store.add({
       companyName: form.companyName, category: form.category, hqLocation: form.hqLocation,
@@ -82,6 +107,16 @@ export function AddStartupClient() {
         <h1 className="text-xl font-bold text-gray-900 mb-2">Sign in to list your startup</h1>
         <p className="text-sm text-gray-500 mb-4">Create a free account to add your SaaS to the directory.</p>
         <Link href="/" className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">← Back to Home</Link>
+      </div>
+    );
+  }
+
+  if (existingListing) {
+    return (
+      <div className="max-w-md mx-auto text-center py-20">
+        <h1 className="text-xl font-bold text-gray-900 mb-2">You already have a listing</h1>
+        <p className="text-sm text-gray-500 mb-4">Each account can list one SaaS. You can edit your existing profile instead.</p>
+        <Link href={`/startups/${existingListing.slug}`} className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">→ Go to {existingListing.companyName}</Link>
       </div>
     );
   }
