@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getAllStartups } from "@/lib/db";
+import { getAllStartups, getAllTags } from "@/lib/db";
 import { CATEGORIES } from "@/lib/types";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://saasstars.com";
@@ -33,5 +33,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticPages, ...categoryPages, ...startupPages];
+  const tags = await getAllTags();
+  const tagPages: MetadataRoute.Sitemap = tags.map((tag) => ({
+    url: `${SITE_URL}/tags/${tag.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.6,
+  }));
+
+  return [...staticPages, ...categoryPages, ...startupPages, ...tagPages];
 }

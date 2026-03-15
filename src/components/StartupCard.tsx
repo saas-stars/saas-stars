@@ -2,7 +2,7 @@
 
 import type { Startup } from "@/lib/types";
 import Link from "next/link";
-import { MapPin, Globe, Newspaper } from "lucide-react";
+import { MapPin, Globe, Newspaper, Flame } from "lucide-react";
 
 interface Props {
   startup: Startup;
@@ -42,10 +42,48 @@ function getAvatarColor(name: string): string {
 }
 
 function isNew(createdAt: string): boolean {
-  const created = new Date(createdAt + "T12:00:00");
+  const created = new Date(createdAt.includes("T") ? createdAt : createdAt + "T12:00:00");
   const now = new Date();
   const diff = (now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24);
   return diff <= 14;
+}
+
+/** Calculate an activity score for a startup */
+export function getActivityScore(startup: Startup): number {
+  let score = 0;
+  const now = Date.now();
+
+  // Points for news — more recent = more points
+  for (const n of startup.news) {
+    const age = (now - new Date(n.date + "T12:00:00").getTime()) / (1000 * 60 * 60 * 24);
+    if (age <= 7) score += 10;
+    else if (age <= 30) score += 5;
+    else if (age <= 90) score += 2;
+    else score += 1;
+  }
+
+  // Profile completeness bonus
+  if (startup.logoUrl) score += 3;
+  if (startup.longDescription) score += 2;
+  if (startup.screenshotUrl) score += 2;
+  if (startup.founderName) score += 2;
+  if (startup.tags && startup.tags.length > 0) score += 1;
+  if (startup.integrations && startup.integrations.length > 0) score += 1;
+  if (startup.pricingSummary) score += 1;
+  if (startup.ctaUrl) score += 1;
+
+  return score;
+}
+
+/** Get a human-readable label for the latest activity */
+function getLastActiveLabel(startup: Startup): string | null {
+  if (startup.news.length === 0) return null;
+  const latest = startup.news[0]; // news is sorted desc
+  const age = (Date.now() - new Date(latest.date + "T12:00:00").getTime()) / (1000 * 60 * 60 * 24);
+  if (age <= 1) return "Active today";
+  if (age <= 7) return "Active this week";
+  if (age <= 30) return "Active this month";
+  return null;
 }
 
 export function StartupCard({ startup }: Props) {
@@ -54,6 +92,8 @@ export function StartupCard({ startup }: Props) {
   const initial = startup.companyName.charAt(0).toUpperCase();
   const avatarBg = getAvatarColor(startup.companyName);
   const showNew = isNew(startup.createdAt);
+  const activeLabel = getLastActiveLabel(startup);
+  const score = getActivityScore(startup);
 
   return (
     <Link
@@ -67,9 +107,17 @@ export function StartupCard({ startup }: Props) {
       )}
 
       <div className="flex items-start gap-3 mb-3">
-        <div className={`w-9 h-9 rounded-lg ${avatarBg} flex items-center justify-center text-white font-bold text-sm shrink-0`}>
-          {initial}
-        </div>
+        {startup.logoUrl ? (
+          <img
+            src={startup.logoUrl}
+            alt={`${startup.companyName} logo`}
+            className="w-9 h-9 rounded-lg object-contain border border-gray-200 bg-white shrink-0"
+          />
+        ) : (
+          <div className={`w-9 h-9 rounded-lg ${avatarBg} flex items-center justify-center text-white font-bold text-sm shrink-0`}>
+            {initial}
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <h3 className="font-semibold text-gray-900 text-base group-hover:text-black leading-tight truncate">
@@ -98,6 +146,23 @@ export function StartupCard({ startup }: Props) {
           {(() => { try { return new URL(startup.website).hostname.replace("www.", ""); } catch { return startup.website; } })()}
         </span>
       </div>
+
+      {/* Activity badge + score */}
+      {(activeLabel || score > 0) && (
+        <div className="flex items-center gap-3 mt-2">
+          {activeLabel && (
+            <span className="flex items-center gap-1 text-[11px] font-medium text-orange-600">
+              <Flame className="w-3 h-3" />
+              {activeLabel}
+            </span>
+          )}
+          {score > 0 && (
+            <span className="text-[11px] text-gray-400" title="Activity score">
+              {score} pts
+            </span>
+          )}
+        </div>
+      )}
 
       {latestNews && (
         <div className="mt-3 pt-3 border-t border-gray-100">

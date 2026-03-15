@@ -87,6 +87,24 @@ export function getCategorySlugs(): string[] {
   );
 }
 
+/** Fetch startups that have a specific tag */
+export async function getStartupsByTag(tag: string): Promise<Startup[]> {
+  const all = await getAllStartups();
+  return all.filter((s) => s.tags?.some((t) => t.toLowerCase() === tag.toLowerCase()));
+}
+
+/** Get all unique tags across all startups */
+export async function getAllTags(): Promise<string[]> {
+  const all = await getAllStartups();
+  const tagSet = new Set<string>();
+  for (const s of all) {
+    if (s.tags) {
+      for (const t of s.tags) tagSet.add(t);
+    }
+  }
+  return Array.from(tagSet);
+}
+
 /** Map a category slug back to its display name */
 export function categoryFromSlug(slug: string): string | null {
   const categories = [
