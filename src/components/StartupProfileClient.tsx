@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { Startup } from "@/lib/types";
 import { CATEGORIES, FUNDRAISING_STAGES } from "@/lib/types";
 import { store } from "@/lib/store";
 import { useAuth } from "@/hooks/useAuth";
+import { logEvent, getAnalyticsSummary, type AnalyticsSummary } from "@/lib/analytics";
 import {
   ArrowLeft,
   Globe,
@@ -26,16 +27,20 @@ import {
   CreditCard,
   User,
   Rocket,
+  BarChart3,
+  Eye,
+  MousePointerClick,
 } from "lucide-react";
 
 /* ─── Helpers ─── */
 
-function LinkPill({ href, label, icon }: { href: string; label: string; icon: React.ReactNode }) {
+function LinkPill({ href, label, icon, startupId, linkType }: { href: string; label: string; icon: React.ReactNode; startupId?: string; linkType?: string }) {
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={() => startupId && logEvent(startupId, "outbound_click", linkType || label)}
       className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-md px-3 py-1.5 transition-colors"
     >
       {icon}
@@ -359,14 +364,96 @@ function NewsItemRow({ item, isOwner, onUpdate, onDelete }: {
   );
 }
 
+/* ─── Analytics Panel (owner-only) ─── */
+
+function AnalyticsPanel({ startupId }: { startupId: string }) {
+  const [data, setData] = useState<AnalyticsSummary | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getAnalyticsSummary(startupId).then((d) => { setData(d); setLoading(false); });
+  }, [startupId]);
+
+  if (loading) return <div className="text-sm text-gray-400 py-4">Loading analytics…</div>;
+  if (!data) return <div className="text-sm text-gray-400 py-4">No analytics data yet.</div>;
+
+  return (
+    <div className="bg-gray-50 border border-gray-200 rounded-xl p-5">
+      <div className="flex items-center gap-2 mb-4">
+        <BarChart3 className="w-4 h-4 text-emerald-600" />
+        <h3 className="text-sm font-bold text-gray-900">Profile Analytics</h3>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
+          <div className="flex items-center justify-center gap-1 text-gray-400 mb-1">
+            <Eye className="w-3.5 h-3.5" />
+            <span className="text-xs">Profile Views</span>
+          </div>
+          <p className="text-2xl font-bold text-gray-900">{data.totalViews}</p>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
+          <div className="flex items-center justify-center gap-1 text-gray-400 mb-1">
+            <MousePointerClick className="w-3.5 h-3.5" />
+            <span className="text-xs">Outbound Clicks</span>
+          </div>
+          <p className="text-2xl font-bold text-gray-900">{data.totalClicks}</p>
+        </div>
+      </div>
+
+      {Object.keys(data.clicksByType).length > 0 && (
+        <div className="mb-4">
+          <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Clicks by Link</p>
+          <div className="space-y-1">
+            {Object.entries(data.clicksByType)
+              .sort((a, b) => b[1] - a[1])
+              .map(([type, count]) => (
+                <div key={type} className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">{type}</span>
+                  <span className="font-medium text-gray-900">{count}</span>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+
+      {data.viewsByDay.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Views (Last 30 Days)</p>
+          <div className="flex items-end gap-0.5 h-16">
+            {data.viewsByDay.map((d) => {
+              const max = Math.max(...data.viewsByDay.map((v) => v.count));
+              const height = max > 0 ? (d.count / max) * 100 : 0;
+              return (
+                <div key={d.date} className="flex-1 group relative">
+                  <div className="bg-emerald-500 rounded-t-sm transition-all" style={{ height: `${Math.max(height, 4)}%` }} />
+                  <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-800 text-white text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap">
+                    {d.date}: {d.count}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─── Main Profile Component ─── */
 
 export function StartupProfileClient({ startup: initialStartup }: { startup: Startup }) {
   const [startup, setStartup] = useState(initialStartup);
   const [showNewsForm, setShowNewsForm] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
   const { user } = useAuth();
   const isOwner = user !== null && user.id === startup.ownerId;
+
+  // Track profile view on mount
+  useEffect(() => {
+    logEvent(startup.id, "profile_view");
+  }, [startup.id]);
 
   const ctaLabel = startup.ctaLabel || (startup.freeTrialUrl ? "Start Free Trial" : startup.demoUrl ? "Request Demo" : null);
   const ctaUrl = startup.ctaUrl || startup.freeTrialUrl || startup.demoUrl || null;
@@ -397,10 +484,16 @@ export function StartupProfileClient({ startup: initialStartup }: { startup: Sta
                 )}
               </div>
               {isOwner && !editing && (
-                <button onClick={() => setEditing(true)} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors shrink-0">
-                  <Pencil className="w-3.5 h-3.5" />
-                  Edit
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button onClick={() => setShowAnalytics(!showAnalytics)} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors">
+                    <BarChart3 className="w-3.5 h-3.5" />
+                    Analytics
+                  </button>
+                  <button onClick={() => setEditing(true)} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors">
+                    <Pencil className="w-3.5 h-3.5" />
+                    Edit
+                  </button>
+                </div>
               )}
             </div>
 
@@ -410,6 +503,7 @@ export function StartupProfileClient({ startup: initialStartup }: { startup: Sta
                 href={ctaUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => logEvent(startup.id, "outbound_click", "cta")}
                 className="inline-flex items-center gap-2 mt-3 bg-emerald-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
               >
                 <Rocket className="w-4 h-4" />
@@ -429,6 +523,13 @@ export function StartupProfileClient({ startup: initialStartup }: { startup: Sta
         />
       )}
 
+      {/* ── Analytics Panel (owner only) ── */}
+      {showAnalytics && isOwner && (
+        <section className="mb-8">
+          <AnalyticsPanel startupId={startup.id} />
+        </section>
+      )}
+
       {/* ── Product Screenshot ── */}
       {startup.screenshotUrl && (
         <section className="mb-8">
@@ -441,7 +542,7 @@ export function StartupProfileClient({ startup: initialStartup }: { startup: Sta
       {/* ── Key Details Grid ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
         <Detail icon={<Globe className="w-4 h-4" />} label="Website">
-          <a href={startup.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+          <a href={startup.website} target="_blank" rel="noopener noreferrer" onClick={() => logEvent(startup.id, "outbound_click", "website")} className="text-blue-600 hover:underline">
             {(() => { try { return new URL(startup.website).hostname.replace("www.", ""); } catch { return startup.website; } })()}
           </a>
         </Detail>
@@ -500,7 +601,7 @@ export function StartupProfileClient({ startup: initialStartup }: { startup: Sta
               <p className="text-sm text-gray-700 leading-relaxed">{startup.pricingSummary}</p>
             )}
             {startup.pricingUrl && (
-              <a href={startup.pricingUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-emerald-600 hover:text-emerald-700 font-medium mt-2">
+              <a href={startup.pricingUrl} target="_blank" rel="noopener noreferrer" onClick={() => logEvent(startup.id, "outbound_click", "pricing")} className="inline-flex items-center gap-1 text-sm text-emerald-600 hover:text-emerald-700 font-medium mt-2">
                 <CreditCard className="w-3.5 h-3.5" />
                 View pricing page
                 <ExternalLink className="w-3 h-3" />
@@ -523,7 +624,7 @@ export function StartupProfileClient({ startup: initialStartup }: { startup: Sta
               {startup.founderTitle && <p className="text-xs text-gray-500">{startup.founderTitle}</p>}
             </div>
             {startup.founderLinkedinUrl && (
-              <a href={startup.founderLinkedinUrl} target="_blank" rel="noopener noreferrer" className="ml-auto text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+              <a href={startup.founderLinkedinUrl} target="_blank" rel="noopener noreferrer" onClick={() => logEvent(startup.id, "outbound_click", "founder_linkedin")} className="ml-auto text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
                 LinkedIn <ExternalLink className="w-3 h-3" />
               </a>
             )}
@@ -533,12 +634,12 @@ export function StartupProfileClient({ startup: initialStartup }: { startup: Sta
 
       {/* ── Social Links ── */}
       <div className="flex flex-wrap gap-2 mb-8">
-        {startup.freeTrialUrl && <LinkPill href={startup.freeTrialUrl} label="Free Trial" icon={<Play className="w-3.5 h-3.5" />} />}
-        {startup.demoUrl && <LinkPill href={startup.demoUrl} label="Demo" icon={<ExternalLink className="w-3.5 h-3.5" />} />}
-        {startup.linkedinUrl && <LinkPill href={startup.linkedinUrl} label="LinkedIn" icon={<ExternalLink className="w-3.5 h-3.5" />} />}
-        {startup.xUrl && <LinkPill href={startup.xUrl} label="X / Twitter" icon={<ExternalLink className="w-3.5 h-3.5" />} />}
-        {startup.youtubeUrl && <LinkPill href={startup.youtubeUrl} label="YouTube" icon={<ExternalLink className="w-3.5 h-3.5" />} />}
-        {startup.newsletterUrl && <LinkPill href={startup.newsletterUrl} label="Newsletter / Blog" icon={<ExternalLink className="w-3.5 h-3.5" />} />}
+        {startup.freeTrialUrl && <LinkPill href={startup.freeTrialUrl} label="Free Trial" icon={<Play className="w-3.5 h-3.5" />} startupId={startup.id} linkType="free_trial" />}
+        {startup.demoUrl && <LinkPill href={startup.demoUrl} label="Demo" icon={<ExternalLink className="w-3.5 h-3.5" />} startupId={startup.id} linkType="demo" />}
+        {startup.linkedinUrl && <LinkPill href={startup.linkedinUrl} label="LinkedIn" icon={<ExternalLink className="w-3.5 h-3.5" />} startupId={startup.id} linkType="linkedin" />}
+        {startup.xUrl && <LinkPill href={startup.xUrl} label="X / Twitter" icon={<ExternalLink className="w-3.5 h-3.5" />} startupId={startup.id} linkType="x_twitter" />}
+        {startup.youtubeUrl && <LinkPill href={startup.youtubeUrl} label="YouTube" icon={<ExternalLink className="w-3.5 h-3.5" />} startupId={startup.id} linkType="youtube" />}
+        {startup.newsletterUrl && <LinkPill href={startup.newsletterUrl} label="Newsletter / Blog" icon={<ExternalLink className="w-3.5 h-3.5" />} startupId={startup.id} linkType="newsletter" />}
       </div>
 
       {/* ── News Feed ── */}
