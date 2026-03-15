@@ -142,6 +142,24 @@ export const store = {
     notify();
   },
 
+  async updateNews(startupId: string, newsId: string, updates: Partial<Omit<NewsItem, "id">>) {
+    const existing = startups.find((s) => s.id === startupId);
+    if (!existing) return;
+    const newNews = existing.news.map((n) => n.id === newsId ? { ...n, ...updates } : n);
+    await supabase.from("startups").update({ news: newNews }).eq("id", startupId);
+    startups = startups.map((s) => s.id === startupId ? { ...s, news: newNews } : s);
+    notify();
+  },
+
+  async deleteNews(startupId: string, newsId: string) {
+    const existing = startups.find((s) => s.id === startupId);
+    if (!existing) return;
+    const newNews = existing.news.filter((n) => n.id !== newsId);
+    await supabase.from("startups").update({ news: newNews }).eq("id", startupId);
+    startups = startups.map((s) => s.id === startupId ? { ...s, news: newNews } : s);
+    notify();
+  },
+
   getRecentlyAdded: (limit = 12) =>
     [...startups].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, limit),
 

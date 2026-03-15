@@ -20,6 +20,7 @@ import {
   Plus,
   Pencil,
   X,
+  Trash2,
 } from "lucide-react";
 
 function LinkPill({ href, label, icon }: { href: string; label: string; icon: React.ReactNode }) {
@@ -182,6 +183,61 @@ function EditProfileForm({ startup, onSaved, onCancel }: { startup: Startup; onS
   );
 }
 
+function NewsItemRow({ item, isOwner, onUpdate, onDelete }: {
+  item: Startup["news"][number];
+  isOwner: boolean;
+  onUpdate: (updates: { title?: string; url?: string }) => Promise<void>;
+  onDelete: () => Promise<void>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState(item.title);
+  const [url, setUrl] = useState(item.url || "");
+  const [confirming, setConfirming] = useState(false);
+
+  if (editing) {
+    return (
+      <div className="py-3 border-b border-gray-100 last:border-0 space-y-2">
+        <input value={title} onChange={(e) => setTitle(e.target.value)} className="input text-sm" placeholder="Headline" />
+        <input value={url} onChange={(e) => setUrl(e.target.value)} className="input text-sm" placeholder="URL (optional)" />
+        <div className="flex gap-2">
+          <button onClick={async () => { await onUpdate({ title, url: url || undefined }); setEditing(false); }} className="text-xs font-medium bg-gray-900 text-white px-3 py-1.5 rounded-md hover:bg-gray-800">Save</button>
+          <button onClick={() => { setTitle(item.title); setUrl(item.url || ""); setEditing(false); }} className="text-xs text-gray-500 hover:text-gray-700">Cancel</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0 group">
+      <Newspaper className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
+      <div className="flex-1 min-w-0">
+        {item.url ? (
+          <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-800 hover:text-blue-600 hover:underline">
+            {item.title}
+          </a>
+        ) : (
+          <p className="text-sm text-gray-800">{item.title}</p>
+        )}
+        <p className="text-xs text-gray-400 mt-0.5">{item.date}</p>
+      </div>
+      {isOwner && (
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+          <button onClick={() => setEditing(true)} className="p-1 text-gray-400 hover:text-gray-600" title="Edit">
+            <Pencil className="w-3.5 h-3.5" />
+          </button>
+          {confirming ? (
+            <button onClick={async () => { await onDelete(); }} className="text-xs text-red-600 font-medium px-1">Confirm?</button>
+          ) : (
+            <button onClick={() => setConfirming(true)} className="p-1 text-gray-400 hover:text-red-500" title="Delete">
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function StartupProfileClient({ startup: initialStartup }: { startup: Startup }) {
   const [startup, setStartup] = useState(initialStartup);
   const [showNewsForm, setShowNewsForm] = useState(false);
@@ -273,19 +329,19 @@ export function StartupProfileClient({ startup: initialStartup }: { startup: Sta
         ) : (
           <div className="space-y-3">
             {startup.news.map((item) => (
-              <div key={item.id} className="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0">
-                <Newspaper className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
-                <div>
-                  {item.url ? (
-                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-800 hover:text-blue-600 hover:underline">
-                      {item.title}
-                    </a>
-                  ) : (
-                    <p className="text-sm text-gray-800">{item.title}</p>
-                  )}
-                  <p className="text-xs text-gray-400 mt-0.5">{item.date}</p>
-                </div>
-              </div>
+              <NewsItemRow
+                key={item.id}
+                item={item}
+                isOwner={isOwner}
+                onUpdate={async (updates) => {
+                  await store.updateNews(startup.id, item.id, updates);
+                  setStartup((prev) => ({ ...prev, news: prev.news.map((n) => n.id === item.id ? { ...n, ...updates } : n) }));
+                }}
+                onDelete={async () => {
+                  await store.deleteNews(startup.id, item.id);
+                  setStartup((prev) => ({ ...prev, news: prev.news.filter((n) => n.id !== item.id) }));
+                }}
+              />
             ))}
           </div>
         )}
