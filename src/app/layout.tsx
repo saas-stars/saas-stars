@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { WebsiteJsonLd } from "@/components/JsonLd";
 import "./globals.css";
+
+const GA_ID = "G-K0CNDVKXFZ";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://saasstars.com";
 
@@ -64,6 +67,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
+        <Script id="gtag-init" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${GA_ID}');`}
+        </Script>
         <WebsiteJsonLd />
       </head>
       <body className="min-h-screen bg-gray-50 antialiased">
